@@ -18,99 +18,101 @@ public class SmoothMouseLook : MonoBehaviour {
  
 	public float minimumY = -60F;
 	public float maximumY = 60F;
+
+	private float _rotationX = 0F;
+	private float _rotationY = 0F;
  
-	float rotationX = 0F;
-	float rotationY = 0F;
+	private List<float> _rotArrayX = new List<float>();
+	private float _rotAverageX = 0F;	
  
-	private List<float> rotArrayX = new List<float>();
-	float rotAverageX = 0F;	
- 
-	private List<float> rotArrayY = new List<float>();
-	float rotAverageY = 0F;
+	private List<float> _rotArrayY = new List<float>();
+	private float _rotAverageY = 0F;
  
 	public float frameCounter = 20;
  
-	Quaternion originalRotation;
- 
-	void Update ()
+	private Quaternion _originalRotation;
+
+	private void Update ()
 	{
 		if (axes == RotationAxes.MouseXAndY)
 		{			
-			rotAverageY = 0f;
-			rotAverageX = 0f;
+			_rotAverageY = 0f;
+			_rotAverageX = 0f;
  
-			rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
-			rotationX += Input.GetAxis("Mouse X") * sensitivityX;
+			_rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
+			_rotationX += Input.GetAxis("Mouse X") * sensitivityX;
  
-			rotArrayY.Add(rotationY);
-			rotArrayX.Add(rotationX);
+			_rotArrayY.Add(_rotationY);
+			_rotArrayX.Add(_rotationX);
  
-			if (rotArrayY.Count >= frameCounter) {
-				rotArrayY.RemoveAt(0);
+			if (_rotArrayY.Count >= frameCounter) {
+				_rotArrayY.RemoveAt(0);
 			}
-			if (rotArrayX.Count >= frameCounter) {
-				rotArrayX.RemoveAt(0);
-			}
- 
-			for(int j = 0; j < rotArrayY.Count; j++) {
-				rotAverageY += rotArrayY[j];
-			}
-			for(int i = 0; i < rotArrayX.Count; i++) {
-				rotAverageX += rotArrayX[i];
+			if (_rotArrayX.Count >= frameCounter) {
+				_rotArrayX.RemoveAt(0);
 			}
  
-			rotAverageY /= rotArrayY.Count;
-			rotAverageX /= rotArrayX.Count;
+			for(int j = 0; j < _rotArrayY.Count; j++) {
+				_rotAverageY += _rotArrayY[j];
+			}
+			for(int i = 0; i < _rotArrayX.Count; i++) {
+				_rotAverageX += _rotArrayX[i];
+			}
  
-			rotAverageY = ClampAngle (rotAverageY, minimumY, maximumY);
-			rotAverageX = ClampAngle (rotAverageX, minimumX, maximumX);
+			_rotAverageY /= _rotArrayY.Count;
+			_rotAverageX /= _rotArrayX.Count;
  
-			Quaternion yQuaternion = Quaternion.AngleAxis (rotAverageY, Vector3.left);
-			Quaternion xQuaternion = Quaternion.AngleAxis (rotAverageX, Vector3.up);
+			_rotAverageY = ClampAngle (_rotAverageY, minimumY, maximumY);
+			_rotAverageX = ClampAngle (_rotAverageX, minimumX, maximumX);
  
-			transform.localRotation = originalRotation * xQuaternion * yQuaternion;
+			Quaternion yQuaternion = Quaternion.AngleAxis (_rotAverageY, Vector3.left);
+			Quaternion xQuaternion = Quaternion.AngleAxis (_rotAverageX, Vector3.up);
+ 
+			transform.localRotation = _originalRotation * xQuaternion * yQuaternion;
 		}
 		else if (axes == RotationAxes.MouseX)
 		{			
-			rotAverageX = 0f;
+			_rotAverageX = 0f;
  
-			rotationX += Input.GetAxis("Mouse X") * sensitivityX;
+			_rotationX += Input.GetAxis("Mouse X") * sensitivityX;
  
-			rotArrayX.Add(rotationX);
+			_rotArrayX.Add(_rotationX);
  
-			if (rotArrayX.Count >= frameCounter) {
-				rotArrayX.RemoveAt(0);
+			if (_rotArrayX.Count >= frameCounter) {
+				_rotArrayX.RemoveAt(0);
 			}
-			for(int i = 0; i < rotArrayX.Count; i++) {
-				rotAverageX += rotArrayX[i];
+			foreach (float f in _rotArrayX)
+			{
+				_rotAverageX += f;
 			}
-			rotAverageX /= rotArrayX.Count;
+			_rotAverageX /= _rotArrayX.Count;
  
-			rotAverageX = ClampAngle (rotAverageX, minimumX, maximumX);
+			_rotAverageX = ClampAngle (_rotAverageX, minimumX, maximumX);
  
-			Quaternion xQuaternion = Quaternion.AngleAxis (rotAverageX, Vector3.up);
-			transform.localRotation = originalRotation * xQuaternion;			
+			Quaternion xQuaternion = Quaternion.AngleAxis (_rotAverageX, Vector3.up);
+			transform.localRotation = _originalRotation * xQuaternion;			
 		}
 		else
 		{			
-			rotAverageY = 0f;
+			_rotAverageY = 0f;
  
-			rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
+			_rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
  
-			rotArrayY.Add(rotationY);
+			_rotArrayY.Add(_rotationY);
  
-			if (rotArrayY.Count >= frameCounter) {
-				rotArrayY.RemoveAt(0);
+			if (_rotArrayY.Count >= frameCounter) {
+				_rotArrayY.RemoveAt(0);
 			}
-			for(int j = 0; j < rotArrayY.Count; j++) {
-				rotAverageY += rotArrayY[j];
+			foreach (float f in _rotArrayY)
+			{
+				_rotAverageY += f;
 			}
-			rotAverageY /= rotArrayY.Count;
+			_rotAverageY /= _rotArrayY.Count;
  
-			rotAverageY = ClampAngle (rotAverageY, minimumY, maximumY);
+			_rotAverageY = ClampAngle (_rotAverageY, minimumY, maximumY);
  
-			Quaternion yQuaternion = Quaternion.AngleAxis (rotAverageY, Vector3.left);
-			transform.localRotation = originalRotation * yQuaternion;
+			Quaternion yQuaternion = Quaternion.AngleAxis (_rotAverageY, Vector3.left);
+			transform.localRotation = _originalRotation * yQuaternion;
 		}
 
 		float forwardMovement = Input.GetAxis("Vertical") * movementSpeed;
@@ -125,23 +127,27 @@ public class SmoothMouseLook : MonoBehaviour {
 			transform.position = transform.position + (transform.right * rightMovement);
 		}
 	}
- 
-	void Start ()
+
+	private void Start ()
 	{		
-                Rigidbody rb = GetComponent<Rigidbody>();	
+		var rb = GetComponent<Rigidbody>();
 		if (rb)
+		{
 			rb.freezeRotation = true;
-		originalRotation = transform.localRotation;
+		}
+		_originalRotation = transform.localRotation;
 	}
- 
-	public static float ClampAngle (float angle, float min, float max)
+
+	private static float ClampAngle (float angle, float min, float max)
 	{
 		angle = angle % 360;
 		if ((angle >= -360F) && (angle <= 360F)) {
-			if (angle < -360F) {
+			if (angle < -360F) 
+			{
 				angle += 360F;
 			}
-			if (angle > 360F) {
+			if (angle > 360F) 
+			{
 				angle -= 360F;
 			}			
 		}
