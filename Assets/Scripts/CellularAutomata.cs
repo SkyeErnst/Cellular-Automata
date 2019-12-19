@@ -10,9 +10,11 @@ public class CellularAutomata : MonoBehaviour
     public Volume volume;
     public delegate void Task();
     public bool autoRun;
+    public float tickTime;
 
     private RuntimeRuleSet _rules;
     private float _frameTimeSum = 0.0f;
+    
     
     private void Start()
     {
@@ -28,7 +30,7 @@ public class CellularAutomata : MonoBehaviour
         if (true == autoRun)
         {
             _frameTimeSum += Time.deltaTime;
-            if (1.0f <= _frameTimeSum)
+            if (tickTime <= _frameTimeSum)
             {
                 volume.DoStep();
                 _frameTimeSum = 0.0f;

@@ -203,13 +203,13 @@ MonoBehaviour:
   overrideColor: 0
   overridingColor: {r: 1, g: 1, b: 1, a: 1}
   useShadow: 1
-  shadowMapRenderTexture: {fileID: 2137654079}
+  shadowMapRenderTexture: {fileID: 2040704238}
   useCookie: 1
   cookieMapRenderTexture: {fileID: 0}
   enableOutOfPhaseColor: 0
   outOfPhaseColorStrength: 0.1
   outOfPhaseColor: {r: 0, g: 1, b: 1, a: 1}
-  shadowDataRenderTexture: {fileID: 1921972923}
+  shadowDataRenderTexture: {fileID: 739136196}
   customDistanceFalloffThreshold: 0.5
   customDistanceFalloffPower: 2
   customCookieDistanceFalloffStartThreshold: 0.1
@@ -292,6 +292,41 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 63.486004, y: 0, z: 0}
+--- !u!84 &739136196
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 'Aura Directional Light : Shadow Data Render Texture'
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 1
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
 --- !u!1 &817663708
 GameObject:
   m_ObjectHideFlags: 0
@@ -794,21 +829,21 @@ MonoBehaviour:
   tintStrength: 1
   useExtinction: 0
   extinction: 0.75
---- !u!84 &1921972923
+--- !u!84 &2040704238
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: 'Aura Directional Light : Shadow Data Render Texture'
+  m_Name: 'Aura Directional Light : Shadow Map Render Texture'
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
   serializedVersion: 3
-  m_Width: 32
-  m_Height: 1
+  m_Width: 512
+  m_Height: 512
   m_AntiAliasing: 1
   m_MipCount: -1
   m_DepthFormat: 0
@@ -872,10 +907,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2111704711}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8940e135ee804f6a936f7161719366df, type: 3}
+  m_Script: {fileID: 11500000, guid: deef83509534462096cad81268682d5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   volume: {fileID: 2111704714}
+  idlePoint: 2
+  destroyPoint: 5
+  birthPoint: 3
 --- !u!114 &2111704714
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -894,9 +932,9 @@ MonoBehaviour:
   yUnit: 1
   zUnit: 1
   ruleSet: {fileID: 2111704713}
-  gridSize: 20
-  minFillPercentage: 0.35
-  maxFillPercentage: 0.75
+  gridSize: 23
+  minFillPercentage: 0.1
+  maxFillPercentage: 0.45
   simpleCellRule: 0
   cellPrefab: {fileID: 4737628563251922798, guid: 4d36254b958b3224d867d1bd762ab15b,
     type: 3}
@@ -913,39 +951,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   volume: {fileID: 2111704714}
-  autoRun: 0
---- !u!84 &2137654079
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 'Aura Directional Light : Shadow Map Render Texture'
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
+  autoRun: 1
+  tickTime: 0.2

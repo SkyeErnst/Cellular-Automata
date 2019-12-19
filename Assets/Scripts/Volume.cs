@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Aura2API;
 using UnityEngine;
 
@@ -67,17 +68,19 @@ public class Volume : MonoBehaviour
     private ConcurrentDictionary<Vector3, bool> _interestingCells = new ConcurrentDictionary<Vector3, bool>();
     private ConcurrentDictionary<Vector3, GameObject> _cells = new ConcurrentDictionary<Vector3, GameObject>();
 
+    private ConcurrentBag<Action> actionList;
+
     private void Start()
     {
         //The "Space" object has a "Volume" component and a "CellularAutomata" component
-        _cellsWithin = GameObject.Find("Space"); 
+        _cellsWithin = GameObject.Find("Space");
         _cellularAutomata = _cellsWithin.GetComponent<CellularAutomata>();
-        
+
         var rand = new System.Random();
 
         double fillPercent = 0;
-        
-        
+
+
         while (fillPercent < minFillPercentage || fillPercent > maxFillPercentage)
         {
             fillPercent = rand.NextDouble();
@@ -91,7 +94,7 @@ public class Volume : MonoBehaviour
             int randX = rand.Next(0, gridSize);
             int randY = rand.Next(0, gridSize);
             int randZ = rand.Next(0, gridSize);
-            AddCell(new Vector3(randX,randY,randZ));
+            AddCell(new Vector3(randX, randY, randZ));
         }
     }
 
@@ -217,59 +220,71 @@ public class Volume : MonoBehaviour
         // We do this because we do not want the state of the volume to change while we're checking all of the cells.
         // if that happens, then when we run CellRule to determine what to do to each cell, changes made to other cells
         // will affect the behavior of different cells in the same step.
-        List<Action> actionList = new List<Action>();   
         
+        actionList = new ConcurrentBag<Action>();
+        List<Task> taskList = new List<Task>();
+
+
         //for every cell of interest
-        foreach (KeyValuePair<Vector3, bool> cell in _interestingCells) 
+        foreach (KeyValuePair<Vector3, bool> cell in _interestingCells)
         {
-            // We store the position
-            Vector3 pos = cell.Key; 
-
-            //evaluate the point
-            CellAction response = EvaluatePoint(pos); 
-
-            //then use the response to add an action to the list.
-            switch (response.action) 
-            {
-                case CellActionID.Create:
-                    actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymous function as an element.
-                    if (true == DebugMode)
-                    {
-                        Debug.Log($"Cell CREATED at {pos}.");
-                    }
-                    break;
-                case CellActionID.Destroy:
-                    actionList.Add(() => { RemoveCell(pos);});
-                    if (true == DebugMode)
-                    {
-                        Debug.Log($"Cell REMOVED at {pos}.");
-                    }
-                    break;
-                case CellActionID.IgnorePos:
-                    bool dump;
-                    actionList.Add(() =>
-                    {
-                        _interestingCells.TryRemove(pos,out dump);
-                        GameObject gameObj;
-                        _cells.TryRemove(pos, out gameObj);
-                        gameObj.Destroy();
-                    });
-                    if (true == DebugMode)
-                    {
-                        Debug.Log($"Cell IGNORED at {pos}.");
-                    }
-                    break;
-                case CellActionID.Idle:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            // Thanks SO https://stackoverflow.com/questions/49537761/cannot-convert-from-void-to-system-action
+            Action mStep = () => MicroStep(cell);
+            taskList.Add(Task.Factory.StartNew(mStep));
         }
 
+        Task.WaitAll(taskList.ToArray());
+        
         foreach (var action in actionList)
         {
             // Now we execute every action that the list accumulated.
             action();
+        }
+    }
+    
+    private void MicroStep(KeyValuePair<Vector3, bool> cell)
+    {
+        // We store the position
+        Vector3 pos = cell.Key; 
+
+        //evaluate the point
+        CellAction response = EvaluatePoint(pos); 
+
+        //then use the response to add an action to the list.
+        switch (response.action) 
+        {
+            case CellActionID.Create:
+                actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymous function as an element.
+                if (true == DebugMode)
+                {
+                    Debug.Log($"Cell CREATED at {pos}.");
+                }
+                break;
+            case CellActionID.Destroy:
+                actionList.Add(() => { RemoveCell(pos);});
+                if (true == DebugMode)
+                {
+                    Debug.Log($"Cell REMOVED at {pos}.");
+                }
+                break;
+            case CellActionID.IgnorePos:
+                bool dump;
+                actionList.Add(() =>
+                {
+                    _interestingCells.TryRemove(pos,out dump);
+                    GameObject gameObj;
+                    _cells.TryRemove(pos, out gameObj);
+                    gameObj.Destroy();
+                });
+                if (true == DebugMode)
+                {
+                    Debug.Log($"Cell IGNORED at {pos}.");
+                }
+                break;
+            case CellActionID.Idle:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }
