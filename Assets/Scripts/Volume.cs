@@ -46,10 +46,21 @@ public class Volume : MonoBehaviour
     public float yUnit = 1.0f;
     public float zUnit = 1.0f;
     public RuleSet ruleSet;
+    /// <summary>
+    /// The created grid will be this value in each direction.
+    /// I.E. if the value is 10, then the grid of cells will be 10x10x10.
+    /// </summary>
+    public int gridSize;
+
+    public double minFillPercentage;
+    public double maxFillPercentage;
+    
     private GameObject _cellsWithin;
     private CellularAutomata _cellularAutomata;
     public delegate void CellRuleSimple(byte neighborCount);
     public bool simpleCellRule = false;
+
+    private const bool DebugMode = false;
 
     public GameObject cellPrefab;
     
@@ -62,18 +73,39 @@ public class Volume : MonoBehaviour
         _cellsWithin = GameObject.Find("Space"); 
         _cellularAutomata = _cellsWithin.GetComponent<CellularAutomata>();
         
-        System.Random rand = new System.Random();
+        var rand = new System.Random();
 
-        for (int i = 0; i < 150; i++)
+        double fillPercent = 0;
+        
+        
+        while (fillPercent < minFillPercentage || fillPercent > maxFillPercentage)
         {
-            // Spawns a bunch of random cells in a 23x23x23 volume.
-            int randX = rand.Next(0, 23);
-            int randY = rand.Next(0, 23);
-            int randZ = rand.Next(0, 23);
+            fillPercent = rand.NextDouble();
+        }
+
+        int cellCountToSpawn = CalculateFill(fillPercent);
+
+        for (int i = 0; i < cellCountToSpawn; i++)
+        {
+            // Spawns cells randomly inside given grid area
+            int randX = rand.Next(0, gridSize);
+            int randY = rand.Next(0, gridSize);
+            int randZ = rand.Next(0, gridSize);
             AddCell(new Vector3(randX,randY,randZ));
         }
     }
 
+    /// <summary>
+    /// Given a percentage that you want to fill the volume, returns the number of cells required
+    /// </summary>
+    private int CalculateFill(double percentToFill)
+    {
+        double totalSize = Math.Pow(gridSize, 3);
+
+        return (int)(totalSize * percentToFill);
+    }
+
+    // TODO look at enabling / disabling cells rather than create / destroy, or pool instancing.
     private void AddCell(Vector3 position)
     {
         var cellObj = GameObject.Instantiate(cellPrefab,
@@ -117,7 +149,7 @@ public class Volume : MonoBehaviour
         // We set that position to inactive in the _interestingCells dictionary
         // We still want to consider this cell for the future, because it may be bordering some other cell that will later become active,
         // meaning this cell may need to be referenced again.
-        _interestingCells.AddOrUpdate(position, false, (oldkey, oldval) => { return oldval;}); 
+        _interestingCells.AddOrUpdate(position, false, (oldKey, oldVal) => oldVal); 
 
         //Remove the game object, then destroy it.
         _cells.TryRemove(position, out var gameObj); 
@@ -186,9 +218,9 @@ public class Volume : MonoBehaviour
         // if that happens, then when we run CellRule to determine what to do to each cell, changes made to other cells
         // will affect the behavior of different cells in the same step.
         List<Action> actionList = new List<Action>();   
-
+        
         //for every cell of interest
-        foreach (var cell in _interestingCells) 
+        foreach (KeyValuePair<Vector3, bool> cell in _interestingCells) 
         {
             // We store the position
             Vector3 pos = cell.Key; 
@@ -201,11 +233,17 @@ public class Volume : MonoBehaviour
             {
                 case CellActionID.Create:
                     actionList.Add(() => { AddCell(pos);}); //Notice that this list takes an anonymous function as an element.
-                    Debug.Log($"Cell CREATED at {pos}.");
+                    if (true == DebugMode)
+                    {
+                        Debug.Log($"Cell CREATED at {pos}.");
+                    }
                     break;
                 case CellActionID.Destroy:
                     actionList.Add(() => { RemoveCell(pos);});
-                    Debug.Log($"Cell REMOVED at {pos}.");
+                    if (true == DebugMode)
+                    {
+                        Debug.Log($"Cell REMOVED at {pos}.");
+                    }
                     break;
                 case CellActionID.IgnorePos:
                     bool dump;
@@ -216,7 +254,10 @@ public class Volume : MonoBehaviour
                         _cells.TryRemove(pos, out gameObj);
                         gameObj.Destroy();
                     });
-                    Debug.Log($"Cell IGNORED at {pos}.");
+                    if (true == DebugMode)
+                    {
+                        Debug.Log($"Cell IGNORED at {pos}.");
+                    }
                     break;
                 case CellActionID.Idle:
                     break;
